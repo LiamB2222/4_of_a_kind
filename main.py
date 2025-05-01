@@ -10,7 +10,6 @@ from ui.UI import PokerGameUI
 from ai.AI import PokerAI
 
 def main():
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     # Use the CARD folder in the project directory
     CARD_IMAGES_PATH = os.path.join(BASE_DIR, 'CARD')
     

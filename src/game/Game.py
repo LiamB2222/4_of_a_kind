@@ -2,7 +2,7 @@ from typing import List, Dict
 from .Deck import Deck, Card
 from .Hand_evaluation import HandEvaluator, HandRank
 from enum import Enum
-from AI.pWin import calculate_win_probability
+from ai.pWin import calculate_win_probability
 
 
 class Player:
