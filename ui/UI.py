@@ -12,6 +12,7 @@ class PokerGameUI:
         self.card_images: Dict[str, tk.PhotoImage] = {}
         self.win_count = 0
         self.loss_count = 0
+        self.game_active = True
         
         self.root = tk.Tk()
         self.root.title("Texas Hold'em Poker")
@@ -23,6 +24,26 @@ class PokerGameUI:
         self.create_player_areas()
         self.create_action_buttons()
         self.create_stats_display()
+        self.create_game_log()
+
+    def create_game_log(self):
+        log_frame = tk.Frame(self.root)
+        log_frame.pack(pady=10, padx=10, fill=tk.X)
+    
+        # Add a label for the section
+        tk.Label(log_frame, text="Game Log:", font=('Arial', 12, 'bold')).pack(anchor='w')
+    
+        # Create text widget for game log
+        self.game_log = tk.Text(log_frame, height=4, width=50, font=('Arial', 10))
+        self.game_log.pack(fill=tk.X)
+        self.game_log.config(state=tk.DISABLED)
+
+# Add new method to update the game log:
+    def update_game_log(self, message: str):
+        self.game_log.config(state=tk.NORMAL)
+        self.game_log.insert(tk.END, message + "\n")
+        self.game_log.see(tk.END)  # Auto-scroll to the bottom
+        self.game_log.config(state=tk.DISABLED)
     
     def create_stats_display(self):
         stats_frame = tk.Frame(self.root)
@@ -33,6 +54,13 @@ class PokerGameUI:
         
         self.loss_label = tk.Label(stats_frame, text="Losses: 0", font=('Arial', 12))
         self.loss_label.pack(side=tk.LEFT, padx=10)
+
+    def start_new_game(self):
+        self.game_active = True  # Ensure this is set to True for new games
+        self.game.reset_game()
+        self.game.deal_initial_cards()
+        self.game.current_player_index = 0
+        self.reset_and_deal_new_hand()
     
     def update_stats(self, won: bool):
         if won:
@@ -148,6 +176,9 @@ class PokerGameUI:
     def create_action_buttons(self):
         action_frame = tk.Frame(self.root)
         action_frame.pack(pady=20)
+
+        self.new_game_button = tk.Button(action_frame, text="New Game", command=self.start_new_game)
+        self.new_game_button.pack(side=tk.LEFT, padx=5)
         
         self.fold_button = tk.Button(action_frame, text="Fold", command=self.handle_fold)
         self.fold_button.pack(side=tk.LEFT, padx=5)
@@ -211,7 +242,11 @@ class PokerGameUI:
             self.thinking_labels[player_index].config(text="")
     
     def handle_fold(self):
+        if not self.game_active:
+            return
+        # Check if the current player is still in the game
         current_player = self.game.players[self.game.current_player_index]
+        self.update_game_log(f"{current_player.name} folds")
         print(f"{current_player.name} folds")
         current_player.fold()
         
@@ -221,21 +256,51 @@ class PokerGameUI:
         active_players = [p for p in self.game.players if not p.folded]
         if len(active_players) == 1:
             winner = active_players[0]
+            self.game_active = False  # Stop the game BEFORE revealing cards
+            self.reveal_ai_cards(skip_winner_check=True)  # Add parameter to skip winner check
             messagebox.showinfo("Winner", f"{winner.name} wins the pot of ${self.game.current_pot}!")
             winner.chips += self.game.current_pot
             self.update_stats(winner.name == "Human Player")
-            self.reset_and_deal_new_hand()
-            return
+            self.update_ui()
+            return  # Don't reset and deal new hand
         
         # Move to next active player
         self.next_player()
         
         # If it's an AI's turn, handle it after a short delay
-        if not self.game.players[self.game.current_player_index].name == "Human Player":
+        if self.game_active and not self.game.players[self.game.current_player_index].name == "Human Player":
             self.root.after(500, self.handle_ai_turn)
     
     def handle_call(self):
+        if not self.game_active:
+            return
+        
         current_player = self.game.players[self.game.current_player_index]
+        highest_bet = max(p.current_bet for p in self.game.players)
+        amount_to_call = highest_bet - current_player.current_bet
+    
+        amount_to_call = int(amount_to_call)
+    
+        if amount_to_call == 0:
+                self.update_game_log(f"{current_player.name} checks")
+                print(f"{current_player.name} checks")
+        else:
+            try:
+                self.update_game_log(f"{current_player.name} calls ${amount_to_call}")
+                print(f"{current_player.name} calls ${amount_to_call}")
+                bet_amount = current_player.bet(amount_to_call)
+                self.game.current_pot += bet_amount
+            except ValueError as e:
+                messagebox.showerror("Error", str(e))
+                return
+    
+        self.update_ui()
+        self.next_player()
+    
+        # Always handle AI turn after fold if next player is AI
+        next_player = self.game.players[self.game.current_player_index]
+        if isinstance(next_player, PokerAI) and not next_player.folded:
+            self.root.after(500, self.handle_ai_turn)
         
         highest_bet = max(p.current_bet for p in self.game.players)
         amount_to_call = highest_bet - current_player.current_bet
@@ -259,6 +324,8 @@ class PokerGameUI:
             self.root.after(500, self.handle_ai_turn)
     
     def handle_raise(self):
+        if not self.game_active:
+            return
         raise_input = self.raise_entry.get().strip()
         
         if '.' in raise_input:
@@ -280,6 +347,7 @@ class PokerGameUI:
             total_bet = amount_to_call + raise_amount
             
             try:
+                self.update_game_log(f"{current_player.name} raises by ${raise_amount} (total: ${total_bet})")
                 print(f"{current_player.name} raises by ${raise_amount} (total: ${total_bet})")
                 bet_amount = current_player.bet(total_bet)
                 self.game.current_pot += bet_amount
@@ -294,14 +362,18 @@ class PokerGameUI:
             messagebox.showerror("Invalid Raise", "Please enter a valid whole number")
     
     def evaluate_round_end(self):
+        if not self.game_active:
+            return
         active_players = [p for p in self.game.players if not p.folded]
         
         if len(active_players) == 1:
             winner = active_players[0]
+            self.game_active = False  # Stop the game BEFORE revealing cards
+            self.reveal_ai_cards(skip_winner_check=True)  # Add parameter to skip winner check
             messagebox.showinfo("Winner", f"{winner.name} wins the pot of ${self.game.current_pot}!")
             winner.chips += self.game.current_pot
             self.update_stats(winner.name == "Human Player")
-            self.reset_and_deal_new_hand()
+            self.update_ui()
             return
         
         # Check if all active players have matched bets
@@ -314,6 +386,8 @@ class PokerGameUI:
             return
     
     def advance_betting_round(self):
+        if not self.game_active:
+            return
         for player in self.game.players:
             player.current_bet = 0
             
@@ -329,15 +403,40 @@ class PokerGameUI:
             print("Dealing the river")
             self.game.deal_community_cards(1)
         else:
+            self.game_active = False  # Set game inactive BEFORE determining winner
             winner = self.game.determine_winner()
+            self.reveal_ai_cards(skip_winner_check=True)  # Add parameter to skip winner check
             messagebox.showinfo("Winner", f"{winner.name} wins the pot of ${self.game.current_pot}!")
             winner.chips += self.game.current_pot
             self.update_stats(winner.name == "Human Player")
-            self.game.reset_game()
-            self.game.deal_initial_cards()
+            self.update_ui()
+            return
             
         self.game.current_player_index = 0
         self.update_ui()
+    
+    def reveal_ai_cards(self, skip_winner_check=False):
+        for i, player in enumerate(self.game.players):
+            if isinstance(player, PokerAI) and not player.folded:
+                for j, card in enumerate(player.hand):
+                    card_key = f"{card.rank.name}_of_{card.suit.name}"
+                    if card_key in self.card_images:
+                        self.player_hand_labels[i][j].config(image=self.card_images[card_key])
+                    else:
+                        self.player_hand_labels[i][j].config(image=self.create_placeholder_image(f"{card.rank.name[0]}{card.suit.name[0]}"))
+        
+        self.root.update()
+        
+        # Only check for winner if not already determined
+        if not skip_winner_check:
+            active_players = [p for p in self.game.players if not p.folded]
+            if len(active_players) > 1:
+                self.game_active = False  # Stop the game BEFORE determining winner
+                winner = self.game.determine_winner()
+                messagebox.showinfo("Winner", f"{winner.name} wins the pot of ${self.game.current_pot}!")
+                winner.chips += self.game.current_pot
+                self.update_stats(winner.name == "Human Player")
+                self.update_ui()
     
     def next_player(self):
         # Keep track of starting position to detect full cycle
@@ -366,6 +465,8 @@ class PokerGameUI:
         self.update_ui()
     
     def handle_ai_turn(self):
+        if not self.game_active:
+            return
         # Check if the current player is still in the game
         if self.game.current_player_index >= len(self.game.players):
             return
@@ -392,29 +493,36 @@ class PokerGameUI:
             self.execute_ai_action(current_player, action, amount_to_call)
 
     def execute_ai_action(self, current_player, action, amount_to_call):
+        if not self.game_active:
+            return
         self.show_ai_thinking(self.game.current_player_index, False)
         
         if action == 'fold':
             print(f"AI {current_player.name} folds")
+            self.update_game_log(f"{current_player.name} folds") # added to log the action
             current_player.fold()
             self.update_ui()
             
             active_players = [p for p in self.game.players if not p.folded]
             if len(active_players) == 1:
                 winner = active_players[0]
+                self.game_active = False  # Stop the game BEFORE revealing cards
+                self.reveal_ai_cards(skip_winner_check=True)  # Add parameter to skip winner check
                 messagebox.showinfo("Winner", f"{winner.name} wins the pot of ${self.game.current_pot}!")
                 winner.chips += self.game.current_pot
                 self.update_stats(winner.name == "Human Player")
-                self.reset_and_deal_new_hand()
+                self.update_ui()
                 return
         elif action == 'call':
             try:
                 bet_amount = current_player.bet(amount_to_call)
                 self.game.current_pot += bet_amount
-                print(f"AI {current_player.name} calls ${amount_to_call}")
+                message = f"AI {current_player.name} calls ${amount_to_call}"
+                self.update_game_log(message)  # Log the action
             except ValueError:
                 current_player.fold()
                 print(f"AI {current_player.name} folds (not enough chips)")
+                self.update_game_log(message)
                 self.update_ui()
         elif action == 'raise':
             raise_amount = amount_to_call * (1 + random.random() * 2)
@@ -425,7 +533,8 @@ class PokerGameUI:
             try:
                 bet_amount = current_player.bet(amount_to_call + raise_amount)
                 self.game.current_pot += bet_amount
-                print(f"AI {current_player.name} raises by ${raise_amount}")
+                message = f"AI {current_player.name} raises by ${raise_amount} (total: ${amount_to_call + raise_amount})"
+                self.update_game_log(message)  # Log the action
             except ValueError:
                 try:
                     bet_amount = current_player.bet(amount_to_call)
@@ -450,9 +559,14 @@ class PokerGameUI:
             self.handle_ai_turn()
     
     def reset_and_deal_new_hand(self):
+        print("Starting new hand...")
         self.game.reset_game()
         self.game.deal_initial_cards()
         
+        # Reset current player index before posting blinds
+        self.game.current_player_index = 0
+        
+        # Post blinds
         small_blind_pos = 1 % len(self.game.players)
         big_blind_pos = 2 % len(self.game.players)
         
@@ -466,8 +580,12 @@ class PokerGameUI:
         self.game.current_pot += big_blind
         print(f"{self.game.players[big_blind_pos].name} posts big blind: ${big_blind}")
         
-        self.game.current_player_index = 0
+        # Make sure UI is updated before starting the next round
         self.update_ui()
+        
+        # If first player is AI, handle their turn
+        if isinstance(self.game.players[0], PokerAI):
+            self.root.after(1000, self.handle_ai_turn)
     
     def start_game(self):
         self.game.deck.shuffle()
@@ -498,5 +616,5 @@ if __name__ == "__main__":
     
     game = PokerGame(["Player 1", "AI Player 1", "AI Player 2"])
     
-    ui = PokerGameUI(game, card_image_path='path/to/your/card/images/')
+    ui = PokerGameUI(game, card_image_path='CARD/')
     ui.start_game()

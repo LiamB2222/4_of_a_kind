@@ -19,7 +19,7 @@ def main():
         print("Using placeholder cards instead")
         CARD_IMAGES_PATH = os.path.join(BASE_DIR, 'non_existent_path')
 
-    # Player setup
+    # Player setup, added one player and two AI players for testing
     players = [
         "Human Player",
         "AI Player 1",
