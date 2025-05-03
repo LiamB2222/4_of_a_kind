@@ -215,6 +215,9 @@ class PokerGameUI:
         print(f"{current_player.name} folds")
         current_player.fold()
         
+        # Update UI immediately to show folded state
+        self.update_ui()
+        
         active_players = [p for p in self.game.players if not p.folded]
         if len(active_players) == 1:
             winner = active_players[0]
@@ -224,9 +227,11 @@ class PokerGameUI:
             self.reset_and_deal_new_hand()
             return
         
+        # Move to next active player
         self.next_player()
         
-        if current_player.name == "Human Player":
+        # If it's an AI's turn, handle it after a short delay
+        if not self.game.players[self.game.current_player_index].name == "Human Player":
             self.root.after(500, self.handle_ai_turn)
     
     def handle_call(self):
@@ -299,10 +304,14 @@ class PokerGameUI:
             self.reset_and_deal_new_hand()
             return
         
+        # Check if all active players have matched bets
         bet_amounts = [p.current_bet for p in active_players]
-        
         if len(set(bet_amounts)) == 1:
             self.advance_betting_round()
+            
+        # If it's the human player's turn, stop AI processing
+        if self.game.players[self.game.current_player_index].name == "Human Player":
+            return
     
     def advance_betting_round(self):
         for player in self.game.players:
@@ -331,22 +340,43 @@ class PokerGameUI:
         self.update_ui()
     
     def next_player(self):
-        while True:
+        # Keep track of starting position to detect full cycle
+        start_index = self.game.current_player_index
+        full_cycle = False
+        
+        while not full_cycle:
+            # Move to next player
             self.game.current_player_index = (self.game.current_player_index + 1) % len(self.game.players)
             
+            # Check if we've completed a full cycle
+            if self.game.current_player_index == start_index:
+                full_cycle = True
+            
+            # If current player is not folded, we can stop
             if not self.game.players[self.game.current_player_index].folded:
                 break
                 
-            active_players = [p for p in self.game.players if not p.folded]
-            if len(active_players) <= 1:
-                self.evaluate_round_end()
-                return
+            # If we've completed a full cycle and all players are folded, handle game end
+            if full_cycle:
+                active_players = [p for p in self.game.players if not p.folded]
+                if len(active_players) <= 1:
+                    self.evaluate_round_end()
+                    return
                 
         self.update_ui()
     
     def handle_ai_turn(self):
+        # Check if the current player is still in the game
+        if self.game.current_player_index >= len(self.game.players):
+            return
+            
         current_player = self.game.players[self.game.current_player_index]
         
+        # If current player is folded, move to next player
+        if current_player.folded:
+            self.next_player()
+            return
+            
         if isinstance(current_player, PokerAI):
             self.show_ai_thinking(self.game.current_player_index, True)
             self.root.update()
@@ -358,14 +388,16 @@ class PokerGameUI:
             
             action = current_player.decide_action(self.game.community_cards, amount_to_call)
             
-            self.root.after(1000, lambda: self.execute_ai_action(current_player, action, amount_to_call))
-    
+            # Execute AI action immediately instead of scheduling it
+            self.execute_ai_action(current_player, action, amount_to_call)
+
     def execute_ai_action(self, current_player, action, amount_to_call):
         self.show_ai_thinking(self.game.current_player_index, False)
         
         if action == 'fold':
             print(f"AI {current_player.name} folds")
             current_player.fold()
+            self.update_ui()
             
             active_players = [p for p in self.game.players if not p.folded]
             if len(active_players) == 1:
@@ -383,6 +415,7 @@ class PokerGameUI:
             except ValueError:
                 current_player.fold()
                 print(f"AI {current_player.name} folds (not enough chips)")
+                self.update_ui()
         elif action == 'raise':
             raise_amount = amount_to_call * (1 + random.random() * 2)
             raise_amount = int(raise_amount)
@@ -401,15 +434,20 @@ class PokerGameUI:
                 except ValueError:
                     current_player.fold()
                     print(f"AI {current_player.name} folds (not enough chips)")
+                    self.update_ui()
         
-        current_idx = self.game.current_player_index
+        self.update_ui()
         self.next_player()
         
-        next_player_is_human = self.game.current_player_index == 0
-        if next_player_is_human:
-            self.evaluate_round_end()
-        else:
-            self.root.after(1000, self.handle_ai_turn)
+        # Check if round should end
+        self.evaluate_round_end()
+        
+        # If next player is AI and not folded, handle their turn immediately
+        next_player = self.game.players[self.game.current_player_index]
+        if (isinstance(next_player, PokerAI) and 
+            not next_player.folded and
+            not next_player.name == "Human Player"):
+            self.handle_ai_turn()
     
     def reset_and_deal_new_hand(self):
         self.game.reset_game()
