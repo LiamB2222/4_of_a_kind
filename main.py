@@ -5,9 +5,9 @@ import sys
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE_DIR)
 
-from src.game.Game import PokerGame
-from ui.UI import PokerGameUI
-from ai.AI import PokerAI
+from Game import PokerGame
+from UI import PokerGameUI
+from AI import PokerAI
 
 def main():
     # Use the CARD folder in the project directory

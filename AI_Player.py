@@ -1,8 +1,7 @@
 
 from Player import Player
-from Game import Game
 from enum import Enum
-from AI.pWin import calculate_win_probability
+from pWin import calculate_win_probability
 
 
 class Play (Enum) :

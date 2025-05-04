@@ -3,7 +3,7 @@ from tkinter import messagebox
 import os
 import random
 from typing import List, Dict
-from ai.AI import PokerAI
+from AI import PokerAI
 
 class PokerGameUI:
     def __init__(self, game, card_image_path: str = 'card_images/'):

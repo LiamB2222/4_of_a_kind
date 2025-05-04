@@ -1,6 +1,6 @@
 from enum import Enum, auto
 from typing import List, Dict
-from .Deck import Card, Suit, Rank
+from Deck import Card
 
 # lowest to highest rank
 class HandRank(Enum):

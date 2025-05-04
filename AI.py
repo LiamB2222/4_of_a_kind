@@ -1,8 +1,8 @@
 import random
 from typing import List, Optional
-from src.game.Deck import Card
-from src.game.Hand_evaluation import HandEvaluator, HandRank
-from src.game.Game import Player
+from Deck import Card
+from Hand_evaluation import HandEvaluator, HandRank
+from Game import Player
 
 class PokerAI(Player):
     def __init__(self, name: str, initial_chips: int = 1000, strategy: str = 'conservative'):
