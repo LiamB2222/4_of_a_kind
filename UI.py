@@ -416,7 +416,7 @@ class PokerGameUI:
     
     def reveal_ai_cards(self, skip_winner_check=False):
         for i, player in enumerate(self.game.players):
-            if isinstance(player, PokerAI) and not player.folded:
+            if isinstance(player, AI_Player) and not player.folded:
                 for j, card in enumerate(player.hand):
                     card_key = f"{card.rank.name}_of_{card.suit.name}"
                     if card_key in self.card_images:
@@ -551,7 +551,7 @@ class PokerGameUI:
         
         # If next player is AI and not folded, handle their turn immediately
         next_player = self.game.players[self.game.current_player_index]
-        if (isinstance(next_player, PokerAI) and 
+        if (isinstance(next_player, AI_Player) and 
             not next_player.folded and
             not next_player.name == "Human Player"):
             self.handle_ai_turn()
@@ -582,7 +582,7 @@ class PokerGameUI:
         self.update_ui()
         
         # If first player is AI, handle their turn
-        if isinstance(self.game.players[0], PokerAI):
+        if isinstance(self.game.players[0], AI_Player):
             self.root.after(1000, self.handle_ai_turn)
     
     def start_game(self):
