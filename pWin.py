@@ -6,6 +6,19 @@ from treys import (
 
 hand_evaluator = TreysEvaluator()
 
+def card_to_treys_card(card):
+    """
+    Convert a card from the custom Card class to a Treys Card object.
+    """
+    # Assuming card is an instance of your custom Card class with rank and suit attributes
+    rank = card.rank
+    suit = card.suit
+
+    # Convert rank and suit to Treys format
+    treys_rank = TreysCard.STR_RANKS[rank]
+    treys_suit = TreysCard.STR_SUITS[suit]
+
+    return TreysCard.new(f"{treys_rank}{treys_suit}")
 
 def calculate_win_probability(hand, board, num_players):
     num_simulations = 10000

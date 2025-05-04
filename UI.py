@@ -3,7 +3,6 @@ from tkinter import messagebox
 import os
 import random
 from typing import List, Dict
-
 class PokerGameUI:
     def __init__(self, game, card_image_path: str = 'card_images/'):
         self.game = game
@@ -613,7 +612,6 @@ if __name__ == "__main__":
     from Game import PokerGame  
     from Player import Player
     from AI_Player import AI_Player
-
        
     players = [
         Player("Liam", initial_chips=1000),
