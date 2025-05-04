@@ -22,10 +22,12 @@ class AI_Player(Player) :
                                                                 # based on its current probability of winning 
                                                                 # the numbers represent how much of that ideal amount the AI will bet on bets on turn 1,2, ect
 
-        self.risk_factor = 0.1                 # this is the risk factor for the AI and will be used to determine how much it is willing to bet based on its current win probability
-        self.max_bet = initial_chips * self.game.number_of_players * self.risk_factor # should be set to the maximum amount the AI will aim to drive the pot to in a single round (thats round not turn)(may be driven higher to save sunk costs)
+        self.boldness = 0.1                 # this is the risk factor for the AI and will be used to determine how much it is willing to bet based on its current win probability
+        self.max_pot = initial_chips * self.game.number_of_players * self.boldness # should be set to the maximum amount the AI will aim to drive the pot to in a single round (thats round not turn)(may be driven higher to save sunk costs)
         self.persistance_factor = 0.5             # how much the AI will be willing to persue sunk costs even if the odds are not in its favor (scales with )
 
+
+        # todo: add function to asses current game state and adjust relvant values (example max pot might go down if we have lost chips)
 
     def my_win_probability(self):
         '''wrapper for calculate_win_probability function but automatically uses paramaters for this player'''
@@ -39,31 +41,25 @@ class AI_Player(Player) :
     
     def Decide_Play (self,confidence,call_minimum):
         '''Will return play type'''
-        ideal_pot = self.max_bet * confidence * self.turn_pot_percentage_targets[self.game.turn_number]
+        ideal_pot = self.max_pot * confidence * self.turn_pot_percentage_targets[self.game.turn_number] # bassically how likely we are to win * how far in the game are we 
         
         if self.game.current_pot + call_minimum >= ideal_pot:
             if call_minimum ==  0:
                 return Play.CHECK
             else:
-                if call_minimum > (self.game.current_pot - ideal_pot) * self.persistance_factor :
+                if call_minimum > (self.game - ideal_pot) * self.persistance_factor :   #check if can exploit by repatedly betting over max pot
                     return Play.FOLD
                 else:
                     return Play.CALL
-        
+    
         if self.game.current_pot + call_minimum < ideal_pot:
-            if call_minimum == 0:
+            if call_minimum == 0:    
                 return Play.BET
             else:
                 return Play.RAISE
-            
-            
-                
-
 
     def Take_Turn (self, current_pot = 0, p_win = 0.5, call_value = 0,ideal_pot = 0) :
         '''function to play out the turn might have to work on this more with poleth later '''
-
-
         play = self.Decide_Play(self.my_win_probability(),call_value)
         call_value 
 
@@ -76,5 +72,9 @@ class AI_Player(Player) :
         if play == Play.CALL:
             self.bet(call_value)
             return Play.CALL
+
+        if play == Play.RAISE or Play.BET:
+            bet_amount = self.bet(ideal_pot - current_pot)
+            return Play.RAISE if play == Play.RAISE else Play.BET
 
     
