@@ -5,6 +5,7 @@ from src.game.Hand_evaluation import HandEvaluator, HandRank
 from src.game.Game import Player
 
 class PokerAI(Player):
+    
     def __init__(self, name: str, initial_chips: int = 1000, strategy: str = 'conservative'):
         super().__init__(name, initial_chips)
         self.strategy = strategy

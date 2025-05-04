@@ -434,8 +434,8 @@ class PokerGameUI:
         self.game.current_player_index = 0
         
         # Collect initial blinds
-        small_blind_pos = 1 % len(self.game.players)
-        big_blind_pos = 2 % len(self.game.players)
+        small_blind_pos = 1 % len(self.game.players)   # does 1 % do anything here?
+        big_blind_pos = 2 % len(self.game.players)    
         
         # Small blind (ensure it's a whole number)
         small_blind = int(self.game.small_blind)
