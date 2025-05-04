@@ -1,11 +1,11 @@
 import random
 from enum import Enum, auto
-
+from treys import Card as TreyCard
 class Suit(Enum):
-    HEARTS = auto()
-    DIAMONDS = auto()
-    CLUBS = auto()
-    SPADES = auto()
+    HEARTS = 'h'
+    DIAMONDS = 'd'
+    CLUBS = 'c'
+    SPADES = 's'
 
 class Rank(Enum):
     ACE = 14
@@ -48,3 +48,38 @@ class Deck:
     
     def reset(self):
         self.__init__()
+
+
+def To_Trays(self, Card):
+        '''Convert the deck to a format compatible with the Treys library'''
+        rank = ''
+        if Card.rank == Rank.ACE:
+            rank = 'A'
+        elif Card.rank == Rank.TWO:
+            rank = '2'
+        elif Card.rank == Rank.THREE:
+            rank = '3'
+        elif Card.rank == Rank.FOUR:
+            rank = '4'
+        elif Card.rank == Rank.FIVE:
+            rank = '5'
+        elif Card.rank == Rank.SIX:
+            rank = '6'
+        elif Card.rank == Rank.SEVEN:
+            rank = '7'
+        elif Card.rank == Rank.EIGHT:
+            rank = '8'
+        elif Card.rank == Rank.NINE:
+            rank = '9'
+        elif Card.rank == Rank.TEN:
+            rank = 'T'
+        elif Card.rank == Rank.JACK:
+            rank = 'J'
+        elif Card.rank == Rank.QUEEN:
+            rank = 'Q'
+        elif Card.rank == Rank.KING:
+            rank = 'K'
+        else:
+            raise ValueError("Invalid rank")
+        
+        return TreyCard.new(Card.rank.value + Card.suit.value)
