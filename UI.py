@@ -3,7 +3,6 @@ from tkinter import messagebox
 import os
 import random
 from typing import List, Dict
-from AI import PokerAI
 
 class PokerGameUI:
     def __init__(self, game, card_image_path: str = 'card_images/'):
@@ -299,7 +298,7 @@ class PokerGameUI:
     
         # Always handle AI turn after fold if next player is AI
         next_player = self.game.players[self.game.current_player_index]
-        if isinstance(next_player, PokerAI) and not next_player.folded:
+        if isinstance(next_player, AI_Player) and not next_player.folded:
             self.root.after(500, self.handle_ai_turn)
         
         highest_bet = max(p.current_bet for p in self.game.players)
@@ -478,7 +477,7 @@ class PokerGameUI:
             self.next_player()
             return
             
-        if isinstance(current_player, PokerAI):
+        if isinstance(current_player, AI_Player):
             self.show_ai_thinking(self.game.current_player_index, True)
             self.root.update()
             
@@ -487,7 +486,7 @@ class PokerGameUI:
             
             amount_to_call = int(amount_to_call)
             
-            action = current_player.decide_action(self.game.community_cards, amount_to_call)
+            action = current_player.Decide_Action(amount_to_call)
             
             # Execute AI action immediately instead of scheduling it
             self.execute_ai_action(current_player, action, amount_to_call)
@@ -525,8 +524,7 @@ class PokerGameUI:
                 self.update_game_log(message)
                 self.update_ui()
         elif action == 'raise':
-            raise_amount = amount_to_call * (1 + random.random() * 2)
-            raise_amount = int(raise_amount)
+            raise_amount = current_player.Get_Raise_Amount()
             if raise_amount <= 0:
                 raise_amount = 1
             
@@ -612,9 +610,18 @@ class PokerGameUI:
 
 # Test Example
 if __name__ == "__main__":
-    from src.game.Game import PokerGame  
-    
-    game = PokerGame(["Player 1", "AI Player 1", "AI Player 2"])
+    from Game import PokerGame  
+    from Player import Player
+    from AI_Player import AI_Player
+
+       
+    players = [
+        Player("Liam", initial_chips=1000),
+        AI_Player("AI Player 1", initial_chips=1000),
+        AI_Player("AI Player 2", initial_chips=1000)
+    ]
+
+    game = PokerGame(players)
     
     ui = PokerGameUI(game, card_image_path='CARD/')
     ui.start_game()

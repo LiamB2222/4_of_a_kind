@@ -1,14 +1,16 @@
 from typing import List
 from Deck import Card
 class Player:
-    def __init__(self, name: str, game, initial_chips: int = 1000, ):
+    def __init__(self, name: str, initial_chips: int = 1000, ):
         self.name = name
         self.chips = initial_chips
         self.hand: List[Card] = []
         self.current_bet: int = 0
         self.folded: bool = False
-        self.game = game
+        self.game = None
         
+    def set_game(self, game):
+        self.game = game
     
     def receive_card(self, card: Card):
         self.hand.append(card)

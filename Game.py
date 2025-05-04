@@ -3,15 +3,17 @@ from Deck import Deck, Card
 from Hand_evaluation import HandEvaluator, HandRank
 from enum import Enum
 from pWin import calculate_win_probability
-from Player import Player
+import Player
 
 class PokerGame:
-    def __init__(self, players: List[str], small_blind: int = 10):
+    def __init__(self, players, small_blind: int = 10):
         # Ensure small_blind is an integer
         small_blind = int(small_blind)
         
         self.deck = Deck()
-        self.players = [Player(name,game=self) for name in players]
+        self.players = players
+        for player in self.players:
+            player.set_game(self)
         self.community_cards: List[Card] = []
         self.small_blind = small_blind
         self.current_pot: int = 0
