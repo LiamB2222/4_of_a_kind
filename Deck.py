@@ -82,4 +82,4 @@ def To_Trays(Card :Card = Card(Rank.TWO,Suit.SPADES)) -> TreyCard:
         else:
             raise ValueError("Invalid rank")
         
-        return TreyCard.new(str(Card.rank.value) + Card.suit.value)
+        return TreyCard.new(rank + Card.suit.value)
