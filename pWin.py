@@ -3,28 +3,21 @@ from treys import (
     Deck as TreysDeck,
     Card as TreysCard
 )
-
+from Deck import Card, To_Trays
 hand_evaluator = TreysEvaluator()
+from typing import List
 
-def card_to_treys_card(card):
-    """
-    Convert a card from the custom Card class to a Treys Card object.
-    """
-    # Assuming card is an instance of your custom Card class with rank and suit attributes
-    rank = card.rank
-    suit = card.suit
-
-    # Convert rank and suit to Treys format
-    treys_rank = TreysCard.STR_RANKS[rank]
-    treys_suit = TreysCard.STR_SUITS[suit]
-
-    return TreysCard.new(f"{treys_rank}{treys_suit}")
-
-def calculate_win_probability(hand, board, num_players):
+def calculate_win_probability(hand: List[Card], board, num_players):
+    
+    Treys_Hand = []
+    for card in hand:
+        T_card = To_Trays(Card=card)
+        Treys_Hand.append(T_card)
+         
     num_simulations = 10000
 
     simulated_wins = simulate_game(
-        hand,
+        Treys_Hand,
         board,
         num_players,
         num_simulations
@@ -45,7 +38,6 @@ def simulate_game(hand, board, num_players, num_simulations):
         if i_won_the_hand(hand, hands_of_all_opponents, simulated_board, num_players):
             wins += 1
 
-    print(f'Wins: {wins}')
     return wins
 
 

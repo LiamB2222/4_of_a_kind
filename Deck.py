@@ -50,8 +50,8 @@ class Deck:
         self.__init__()
 
 
-def To_Trays(self, Card):
-        '''Convert the deck to a format compatible with the Treys library'''
+def To_Trays(Card :Card = Card(Rank.TWO,Suit.SPADES)) -> TreyCard:
+        '''Convert the card to a format compatible with the Treys library'''
         rank = ''
         if Card.rank == Rank.ACE:
             rank = 'A'
@@ -82,4 +82,4 @@ def To_Trays(self, Card):
         else:
             raise ValueError("Invalid rank")
         
-        return TreyCard.new(Card.rank.value + Card.suit.value)
+        return TreyCard.new(str(Card.rank.value) + Card.suit.value)
