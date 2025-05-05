@@ -34,7 +34,8 @@ class AI_Player(Player) :
 
     @property
     def confidence(self):
-        if confidence := (self.my_win_probability() - 0.5) * 2 > 0:
+        confidence = (self.my_win_probability() - 0.5) * 2
+        if confidence  > 0:
             return confidence
         else:
             return 0.0
@@ -42,23 +43,27 @@ class AI_Player(Player) :
     @property
     def ideal_pot(self):
         '''function to determine the ideal pot value based on the current game state'''
-        return self.max_pot * self.confidence * self.turn_pot_percentage_targets[self.game.turn_number - 1] # bassically how likely we are to win * how far in the game are we
+        ideal_pot = self.max_pot * self.confidence * self.turn_pot_percentage_targets[self.game.turn_number - 1]
+        if ideal_pot < 0:
+            return 0
+        else: # bassically how likely we are to win * how far in the game are we
+            return ideal_pot
 
     def Decide_Action (self,call_minimum):
         '''Will return play type'''
         self.update_max_pot() # update the max pot value based on the current game state
-        self.ideal_pot
+        ideal_pot_ = self.ideal_pot
         
-        if self.game.current_pot + call_minimum >= self.ideal_pot:
+        if self.game.current_pot + call_minimum >= ideal_pot_:
             if call_minimum ==  0:
                 return 'check'
             else:
-                if call_minimum > (self.game.current_pot - self.ideal_pot) * self.persistance_factor :   #check if can exploit by repatedly betting over max pot
+                if call_minimum > (self.game.current_pot - ideal_pot_) * self.persistance_factor :   #check if can exploit by repatedly betting over max pot
                     return 'fold'
                 else:
                     return 'call'
     
-        if self.game.current_pot + call_minimum < self.ideal_pot:
+        if self.game.current_pot + call_minimum < ideal_pot_:
             if call_minimum == 0:    
                 return 'bet'
             else:

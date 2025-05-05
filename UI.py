@@ -73,7 +73,6 @@ class PokerGameUI:
     
     def create_placeholder_image(self, text):
         img = tk.PhotoImage(width=80, height=120)
-        
         for y in range(120):
             for x in range(80):
                 if x < 2 or x >= 78 or y < 2 or y >= 118:
@@ -299,19 +298,15 @@ class PokerGameUI:
             except ValueError as e:
                 messagebox.showerror("Error", str(e))
                 return
-    
+        
+        
         self.update_ui()
         self.next_player()
     
         # Always handle AI turn after fold if next player is AI
         next_player = self.game.players[self.game.current_player_index]
         if isinstance(next_player, AI_Player) and not next_player.folded:
-            self.root.after(500, self.handle_ai_turn)
-        
-        highest_bet = max(p.current_bet for p in self.game.players)
-        amount_to_call = highest_bet - current_player.current_bet
-        
-        amount_to_call = int(amount_to_call)
+            self.handle_ai_turn()
         
         if amount_to_call > 0:
             try:
@@ -324,10 +319,10 @@ class PokerGameUI:
         else:
             print(f"{current_player.name} checks")
         
-        self.next_player()
+        # self.next_player()
         
-        if current_player.name == "Human Player":
-            self.root.after(500, self.handle_ai_turn)
+        #if current_player.name == "Human Player":
+        #    self.root.after(500, self.handle_ai_turn)
     
     def handle_raise(self):
         if not self.game_active:
@@ -490,7 +485,6 @@ class PokerGameUI:
             
             highest_bet = max(p.current_bet for p in self.game.players)
             amount_to_call = highest_bet - current_player.current_bet
-            
             amount_to_call = int(amount_to_call)
             
             action = current_player.Decide_Action(amount_to_call)
@@ -624,7 +618,7 @@ if __name__ == "__main__":
     players = [
         Player("Liam", initial_chips=1000),
         AI_Player("AI Player 1", initial_chips=1000),
-        AI_Player("AI Player 2", initial_chips=1000)
+        # AI_Player("AI Player 2", initial_chips=1000)
     ]
 
     game = PokerGame(players)
