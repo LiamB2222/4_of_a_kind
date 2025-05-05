@@ -7,13 +7,22 @@ from Deck import Card, To_Trays
 hand_evaluator = TreysEvaluator()
 from typing import List
 
-def calculate_win_probability(hand: List[Card], board, num_players):
+def calculate_win_probability(board, num_players, hand = [] ):
     
     Treys_Hand = []
     Treys_Board = []
-    for card in hand:
-        T_card = To_Trays(Card=card)
-        Treys_Hand.append(T_card)
+    BaseDeck = TreysDeck()
+    BaseDeck.shuffle()
+
+    if len(hand) == 0:
+        for card in board:
+            T_card = To_Trays(Card=card)
+            BaseDeck.cards.remove(T_card)
+        Treys_Hand.append(BaseDeck.draw(2))
+    else:
+        for card in hand:
+            T_card = To_Trays(Card=card)
+            Treys_Hand.append(T_card)
     
     for card in board:
         T_card = To_Trays(Card=card)
@@ -50,7 +59,11 @@ def sim_new_setup(hand, deck, board, num_players):
 
     # remove hand and existing board cards from deck
     for card in hand + board:
-        deck.cards.remove(card)
+        try:
+            deck.cards.remove(card)
+        except ValueError as e:
+            raise ValueError(f"Card {TreysCard.STR_RANKS[TreysCard.get_rank_int(card)]} of { TreysCard.CHAR_SUIT_TO_INT_SUIT[TreysCard.get_suit_int(card)]} could not be removed from the deck. Ensure the card exists in the deck.") from e
+            
 
     # generate hands of all opponents
     hands_of_all_opponents = []

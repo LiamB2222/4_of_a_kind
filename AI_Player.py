@@ -17,8 +17,8 @@ class AI_Player(Player) :
         self.boldness = 0.1                 # this is the risk factor for the AI and will be used to determine how much it is willing to bet based on its current win probability
         self.max_pot = 0 
         self.persistance_factor = 0.5             # how much the AI will be willing to persue sunk costs even if the odds are not in its favor (scales with )
-
-
+        self.bluff_proneess_factor = 0.1      # needs to be big because multiplied by a difference 
+        self.Is_Bluffing = False
         # this is the ideal amount the AI wants to have in the pot at the end of the round based on its current win probability and how far into the game it is
         # todo: add function to asses current game state and adjust relvant values (example max pot might go down if we have lost chips)
 
@@ -29,12 +29,18 @@ class AI_Player(Player) :
 
     def my_win_probability(self):
         '''wrapper for calculate_win_probability function but automatically uses paramaters for this player'''
-        prob = calculate_win_probability(self.hand,self.game.community_cards,self.game.number_of_players)
+        prob = calculate_win_probability(self.game.community_cards,self.game.number_of_players,self.hand)
         return prob
+    
+
+    
 
     @property
     def confidence(self):
-        confidence = (self.my_win_probability() - 0.5) * 2
+        if self.Is_Bluffing:
+            return self.bluff_confidence
+
+        confidence = (self.my_win_probability() - 0.5) * 2  + (0.1 * self.game.number_of_players)
         if confidence  > 0:
             return confidence
         else:
@@ -51,12 +57,22 @@ class AI_Player(Player) :
 
     def Decide_Action (self,call_minimum):
         '''Will return play type'''
-        self.update_max_pot() # update the max pot value based on the current game state
+
+        #check if round has reset
+        if self.game.turn_number == 1:
+            self.Is_Bluffing = False
+            self.update_max_pot() # update the max pot value based on the current game state
+       
         ideal_pot_ = self.ideal_pot
         
         if self.game.current_pot + call_minimum >= ideal_pot_:
-            if call_minimum ==  0:
+            if self.bluff_confidence > self.bluff_proneess_factor:
+                self.Is_Bluffing = True
+                ideal_pot_ = self.ideal_pot
+            
+            elif call_minimum ==  0:
                 return 'check'
+            
             else:
                 if call_minimum > (self.game.current_pot - ideal_pot_) * self.persistance_factor :   #check if can exploit by repatedly betting over max pot
                     return 'fold'
@@ -74,8 +90,15 @@ class AI_Player(Player) :
         amount = int(self.ideal_pot - self.game.current_pot)
         return amount if amount > 0 else 0
 
-
-
+    @property
+    def bluff_confidence(self):
+        '''function to determine how much to bluff based on the current game state'''
+        appernet_win_prob = calculate_win_probability(self.game.community_cards,self.game.number_of_players)
+        bluff_confidence = ((appernet_win_prob - 0.5) * 2 + (0.1 * self.game.number_of_players))
+        if bluff_confidence < 0:
+            return 0
+        else:
+            return bluff_confidence
 
 
 
