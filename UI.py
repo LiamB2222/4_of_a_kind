@@ -284,7 +284,6 @@ class PokerGameUI:
         current_player = self.game.players[self.game.current_player_index]
         highest_bet = max(p.current_bet for p in self.game.players)
         amount_to_call = highest_bet - current_player.current_bet
-    
         amount_to_call = int(amount_to_call)
     
         if amount_to_call == 0:
@@ -296,6 +295,8 @@ class PokerGameUI:
                 print(f"{current_player.name} calls ${amount_to_call}")
                 bet_amount = current_player.bet(amount_to_call)
                 self.game.current_pot += bet_amount
+                self.update_game_log(f"{current_player.name} calls ${amount_to_call}")
+                print(f"{current_player.name} calls ${amount_to_call}")
             except ValueError as e:
                 messagebox.showerror("Error", str(e))
                 return
@@ -617,7 +618,7 @@ if __name__ == "__main__":
     from AI_Player import AI_Player
        
     players = [
-        Player("Liam", initial_chips=1000),
+        Player("You", initial_chips=1000),
         AI_Player("AI Player 1", initial_chips=1000),
         # AI_Player("AI Player 2", initial_chips=1000)
     ]

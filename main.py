@@ -23,9 +23,9 @@ def main():
     # Player setup, added one player and two AI players for testing
     
     players = [
-        Player("Liam", initial_chips=1000),
+        Player("You", initial_chips=1000),
         AI_Player("AI Player 1", initial_chips=1000),
-        AI_Player("AI Player 2", initial_chips=1000)
+       #  AI_Player("AI Player 2", initial_chips=1000)
     ]
     game = PokerGame(players)
     
