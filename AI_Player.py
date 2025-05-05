@@ -52,7 +52,7 @@ class AI_Player(Player) :
             if call_minimum ==  0:
                 return 'check'
             else:
-                if call_minimum > (self.game - ideal_pot) * self.persistance_factor :   #check if can exploit by repatedly betting over max pot
+                if call_minimum > (self.game.current_pot - ideal_pot) * self.persistance_factor :   #check if can exploit by repatedly betting over max pot
                     return 'fold'
                 else:
                     return 'call'
