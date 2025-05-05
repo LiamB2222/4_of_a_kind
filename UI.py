@@ -3,6 +3,7 @@ from tkinter import messagebox
 import os
 from typing import List, Dict
 from PIL import Image, ImageTk
+from AI_Player import AI_Player
 
 class PokerGameUI:
     def __init__(self, game, card_image_path: str = 'card_images/'):
