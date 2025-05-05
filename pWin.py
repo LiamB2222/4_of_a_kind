@@ -10,15 +10,19 @@ from typing import List
 def calculate_win_probability(hand: List[Card], board, num_players):
     
     Treys_Hand = []
+    Treys_Board = []
     for card in hand:
         T_card = To_Trays(Card=card)
         Treys_Hand.append(T_card)
-         
+    
+    for card in board:
+        T_card = To_Trays(Card=card)
+        Treys_Board.append(T_card)
     num_simulations = 10000
 
     simulated_wins = simulate_game(
         Treys_Hand,
-        board,
+        Treys_Board,
         num_players,
         num_simulations
     )

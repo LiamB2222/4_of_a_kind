@@ -1,8 +1,9 @@
 import tkinter as tk
 from tkinter import messagebox
 import os
-import random
 from typing import List, Dict
+from PIL import Image, ImageTk
+
 class PokerGameUI:
     def __init__(self, game, card_image_path: str = 'card_images/'):
         self.game = game
@@ -32,9 +33,10 @@ class PokerGameUI:
         tk.Label(log_frame, text="Game Log:", font=('Arial', 12, 'bold')).pack(anchor='w')
     
         # Create text widget for game log
-        self.game_log = tk.Text(log_frame, height=4, width=50, font=('Arial', 10))
+        self.game_log = tk.Text(log_frame, height=5, width=25, font=('Arial', 8))
         self.game_log.pack(fill=tk.X)
         self.game_log.config(state=tk.DISABLED)
+        
 
 # Add new method to update the game log:
     def update_game_log(self, message: str):
@@ -82,40 +84,46 @@ class PokerGameUI:
         return img
     
     def load_card_images(self):
+        card_width = 120
+        card_height = 160
         print(f"Loading card images from: {self.card_image_path}")
         try:
             card_back_path = os.path.join(self.card_image_path, 'card_back.png')
             print(f"Looking for card back at: {card_back_path}")
             if os.path.exists(card_back_path):
-                self.card_back = tk.PhotoImage(file=card_back_path)
-                print("Successfully loaded card back image")
+                card_back_image = Image.open(card_back_path)
+                resized_card_back = card_back_image.resize((card_width, card_height), Image.Resampling.LANCZOS)  # Use LANCZOS instead of ANTIALIAS
+                self.card_back = ImageTk.PhotoImage(resized_card_back)
+                print("Successfully loaded and resized card back image")
             else:
                 self.card_back = self.create_placeholder_image("BACK")
                 print(f"Warning: Card back image not found at {card_back_path}, using placeholder")
-        except tk.TclError as e:
+        except Exception as e:
             self.card_back = self.create_placeholder_image("BACK")
             print(f"Warning: Could not load card back image: {e}")
-        
+
         cards_loaded = 0
         cards_missing = 0
-        
+
         for suit in ['HEARTS', 'DIAMONDS', 'CLUBS', 'SPADES']:
             for rank in ['TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 
                         'NINE', 'TEN', 'JACK', 'QUEEN', 'KING', 'ACE']:
                 try:
                     img_path = os.path.join(self.card_image_path, f'{rank}_of_{suit}.png')
                     if os.path.exists(img_path):
-                        self.card_images[f'{rank}_of_{suit}'] = tk.PhotoImage(file=img_path)
+                        card_image = Image.open(img_path)
+                        resized_card = card_image.resize((card_width, card_height), Image.Resampling.LANCZOS)  # Use LANCZOS instead of ANTIALIAS
+                        self.card_images[f'{rank}_of_{suit}'] = ImageTk.PhotoImage(resized_card)
                         cards_loaded += 1
                     else:
                         self.card_images[f'{rank}_of_{suit}'] = self.create_placeholder_image(f"{rank[0]}{suit[0]}")
                         print(f"Warning: Card image not found at {img_path}")
                         cards_missing += 1
-                except tk.TclError as e:
+                except Exception as e:
                     self.card_images[f'{rank}_of_{suit}'] = self.create_placeholder_image(f"{rank[0]}{suit[0]}")
                     print(f"Warning: Could not load image {img_path}: {e}")
                     cards_missing += 1
-        
+
         print(f"Card loading complete: {cards_loaded} cards loaded, {cards_missing} cards using placeholders")
     
     def create_game_board(self):
@@ -401,9 +409,9 @@ class PokerGameUI:
             print("Dealing the river")
             self.game.deal_community_cards(1)
         else:
-            self.game_active = False  # Set game inactive BEFORE determining winner
+            self.game_active = False
             winner = self.game.determine_winner()
-            self.reveal_ai_cards(skip_winner_check=True)  # Add parameter to skip winner check
+            self.reveal_ai_cards(skip_winner_check=True)  
             messagebox.showinfo("Winner", f"{winner.name} wins the pot of ${self.game.current_pot}!")
             winner.chips += self.game.current_pot
             self.update_stats(winner.name == "Human Player")

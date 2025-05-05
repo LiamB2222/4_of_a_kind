@@ -29,7 +29,8 @@ class AI_Player(Player) :
 
     def my_win_probability(self):
         '''wrapper for calculate_win_probability function but automatically uses paramaters for this player'''
-        return calculate_win_probability(self.hand,self.game.community_cards,self.game.number_of_players)
+        prob = calculate_win_probability(self.hand,self.game.community_cards,self.game.number_of_players)
+        return prob
 
     @property
     def confidence(self):
@@ -41,23 +42,23 @@ class AI_Player(Player) :
     @property
     def ideal_pot(self):
         '''function to determine the ideal pot value based on the current game state'''
-        return self.max_pot * self.confidence * self.turn_pot_percentage_targets[self.game.turn_number] # bassically how likely we are to win * how far in the game are we
+        return self.max_pot * self.confidence * self.turn_pot_percentage_targets[self.game.turn_number - 1] # bassically how likely we are to win * how far in the game are we
 
     def Decide_Action (self,call_minimum):
         '''Will return play type'''
         self.update_max_pot() # update the max pot value based on the current game state
-        ideal_pot = self.max_pot * self.confidence * self.turn_pot_percentage_targets[self.game.turn_number] # bassically how likely we are to win * how far in the game are we 
+        self.ideal_pot
         
-        if self.game.current_pot + call_minimum >= ideal_pot:
+        if self.game.current_pot + call_minimum >= self.ideal_pot:
             if call_minimum ==  0:
                 return 'check'
             else:
-                if call_minimum > (self.game.current_pot - ideal_pot) * self.persistance_factor :   #check if can exploit by repatedly betting over max pot
+                if call_minimum > (self.game.current_pot - self.ideal_pot) * self.persistance_factor :   #check if can exploit by repatedly betting over max pot
                     return 'fold'
                 else:
                     return 'call'
     
-        if self.game.current_pot + call_minimum < ideal_pot:
+        if self.game.current_pot + call_minimum < self.ideal_pot:
             if call_minimum == 0:    
                 return 'bet'
             else:
