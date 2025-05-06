@@ -20,6 +20,8 @@ class AI_Player(Player) :
         self.gamble_factor = 0.5        
         self.bluff_proneess_factor = 0.1      # needs to be big because multiplied by a difference 
         self.Is_Bluffing = False
+
+
         # this is the ideal amount the AI wants to have in the pot at the end of the round based on its current win probability and how far into the game it is
         # todo: add function to asses current game state and adjust relvant values (example max pot might go down if we have lost chips)
 
@@ -42,6 +44,7 @@ class AI_Player(Player) :
             return self.bluff_confidence
 
         confidence = (self.my_win_probability() - 0.5) * 2 * (self.gamble_factor * 10) + (0.1 * self.game.number_of_players)
+      
         if confidence  > 0:
             return confidence
         else:
