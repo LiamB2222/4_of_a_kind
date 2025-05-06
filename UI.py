@@ -618,7 +618,7 @@ if __name__ == "__main__":
     players = [
         Player("Liam", initial_chips=1000),
         AI_Player("AI Player 1", initial_chips=1000),
-        # AI_Player("AI Player 2", initial_chips=1000)
+        #AI_Player("AI Player 2", initial_chips=1000)
     ]
 
     game = PokerGame(players)

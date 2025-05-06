@@ -14,9 +14,10 @@ class AI_Player(Player) :
                                                                 # specifically will track a target ideal amount to have bet by the end of the round 
                                                                 # based on its current probability of winning 
                                                                 # the numbers represent how much of that ideal amount the AI will bet on bets on turn 1,2, ect
-        self.boldness = 0.1                 # this is the risk factor for the AI and will be used to determine how much it is willing to bet based on its current win probability
+        self.boldness_factor = 1                 # this is the risk factor for the AI and will be used to determine how much it is willing to bet based on its current win probability
         self.max_pot = 0 
         self.persistance_factor = 0.5             # how much the AI will be willing to persue sunk costs even if the odds are not in its favor (scales with )
+        self.gamble_factor = 0.5        
         self.bluff_proneess_factor = 0.1      # needs to be big because multiplied by a difference 
         self.Is_Bluffing = False
         # this is the ideal amount the AI wants to have in the pot at the end of the round based on its current win probability and how far into the game it is
@@ -24,7 +25,7 @@ class AI_Player(Player) :
 
     def update_max_pot(self):
         '''function to update the max pot value based on the current game state'''
-        self.max_pot = self.chips * self.game.number_of_players * self.boldness
+        self.max_pot = self.chips * self.game.number_of_players * self.boldness_factor
         return self.max_pot
 
     def my_win_probability(self):
@@ -40,7 +41,7 @@ class AI_Player(Player) :
         if self.Is_Bluffing:
             return self.bluff_confidence
 
-        confidence = (self.my_win_probability() - 0.5) * 2  + (0.1 * self.game.number_of_players)
+        confidence = (self.my_win_probability() - 0.5) * 2 * (self.gamble_factor * 10) + (0.1 * self.game.number_of_players)
         if confidence  > 0:
             return confidence
         else:

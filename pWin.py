@@ -59,10 +59,9 @@ def sim_new_setup(hand, deck, board, num_players):
 
     # remove hand and existing board cards from deck
     for card in hand + board:
-        try:
+        if card in deck.cards:
             deck.cards.remove(card)
-        except ValueError as e:
-            raise ValueError(f"Card {TreysCard.STR_RANKS[TreysCard.get_rank_int(card)]} of { TreysCard.CHAR_SUIT_TO_INT_SUIT[TreysCard.get_suit_int(card)]} could not be removed from the deck. Ensure the card exists in the deck.") from e
+       
             
 
     # generate hands of all opponents
