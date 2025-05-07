@@ -63,14 +63,14 @@ class PokerGameUI:
         self.game.current_player_index = 0
         self.reset_and_deal_new_hand()
     
-    def update_stats(self, won: bool):
-        if won:
+    def update_stats(self, human_won: bool):
+        """Update win/loss statistics for human player"""
+        if human_won:
             self.win_count += 1
+            self.win_label.config(text=f"Wins: {self.win_count}")
         else:
             self.loss_count += 1
-        
-        self.win_label.config(text=f"Wins: {self.win_count}")
-        self.loss_label.config(text=f"Losses: {self.loss_count}")
+            self.loss_label.config(text=f"Losses: {self.loss_count}")
     
     def create_placeholder_image(self, text):
         img = tk.PhotoImage(width=80, height=120)
@@ -280,35 +280,37 @@ class PokerGameUI:
     def handle_call(self):
         if not self.game_active:
             return
-        
+    
         current_player = self.game.players[self.game.current_player_index]
         highest_bet = max(p.current_bet for p in self.game.players)
         amount_to_call = highest_bet - current_player.current_bet
         amount_to_call = int(amount_to_call)
+
+        # Check if player has already called in this round
+        if current_player.current_bet > 0:
+            messagebox.showinfo("Action Not Allowed", "You can only call once per betting round.")
+            return
     
-        if amount_to_call == 0:
+        try:
+            if amount_to_call == 0:
                 self.update_game_log(f"{current_player.name} checks")
                 print(f"{current_player.name} checks")
-        else:
-            try:
-                self.update_game_log(f"{current_player.name} calls ${amount_to_call}")
-                print(f"{current_player.name} calls ${amount_to_call}")
+            else:
                 bet_amount = current_player.bet(amount_to_call)
                 self.game.current_pot += bet_amount
                 self.update_game_log(f"{current_player.name} calls ${amount_to_call}")
                 print(f"{current_player.name} calls ${amount_to_call}")
-            except ValueError as e:
-                messagebox.showerror("Error", str(e))
-                return
-        
-        
+        except ValueError as e:
+            messagebox.showerror("Error", str(e))
+            return
+    
         self.update_ui()
         self.next_player()
-    
-        # Always handle AI turn after fold if next player is AI
+
+        # Trigger AI turn after human call
         next_player = self.game.players[self.game.current_player_index]
         if isinstance(next_player, AI_Player) and not next_player.folded:
-            self.handle_ai_turn()
+            self.root.after(1000, self.handle_ai_turn)
         
         if amount_to_call > 0:
             try:
@@ -610,6 +612,21 @@ class PokerGameUI:
         self.update_ui()
         
         self.root.mainloop()
+
+    def handle_winner(self, winner):
+        """Handle the winner of the round"""
+        if not winner:
+            return
+            
+        # Update stats based on whether human player won
+        human_player = self.game.players[0]  # Human is always first player
+        self.update_stats(winner == human_player)  # True if human won, False if AI won
+        
+        # Award pot to winner
+        winner.chips += self.game.current_pot
+        
+        # Show winner message
+        messagebox.showinfo("Winner", f"{winner.name} wins")
 
 # Test Example
 if __name__ == "__main__":
