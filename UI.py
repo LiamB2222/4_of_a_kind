@@ -68,9 +68,11 @@ class PokerGameUI:
         if human_won:
             self.win_count += 1
             self.win_label.config(text=f"Wins: {self.win_count}")
+            self.update_game_log("You won this round!")
         else:
             self.loss_count += 1
             self.loss_label.config(text=f"Losses: {self.loss_count}")
+            self.update_game_log("You lost this round!")
     
     def create_placeholder_image(self, text):
         img = tk.PhotoImage(width=80, height=120)
@@ -266,7 +268,7 @@ class PokerGameUI:
             self.reveal_ai_cards(skip_winner_check=True)  # Add parameter to skip winner check
             messagebox.showinfo("Winner", f"{winner.name} wins the pot of ${self.game.current_pot}!")
             winner.chips += self.game.current_pot
-            self.update_stats(winner.name == "Human Player")
+            self.update_stats(winner == self.game.players[0])  # Fix: Check if winner is the human player (index 0)
             self.update_ui()
             return  # Don't reset and deal new hand
         
@@ -410,10 +412,10 @@ class PokerGameUI:
         else:
             self.game_active = False
             winner = self.game.determine_winner()
-            self.reveal_ai_cards(skip_winner_check=True)  
+            self.reveal_ai_cards(skip_winner_check=True)
             messagebox.showinfo("Winner", f"{winner.name} wins the pot of ${self.game.current_pot}!")
             winner.chips += self.game.current_pot
-            self.update_stats(winner.name == "Human Player")
+            self.update_stats(winner == self.game.players[0])  # Fix: Check if winner is the human player (index 0)
             self.update_ui()
             return
             
@@ -436,11 +438,11 @@ class PokerGameUI:
         if not skip_winner_check:
             active_players = [p for p in self.game.players if not p.folded]
             if len(active_players) > 1:
-                self.game_active = False  # Stop the game BEFORE determining winner
+                self.game_active = False
                 winner = self.game.determine_winner()
                 messagebox.showinfo("Winner", f"{winner.name} wins the pot of ${self.game.current_pot}!")
                 winner.chips += self.game.current_pot
-                self.update_stats(winner.name == "Human Player")
+                self.update_stats(winner == self.game.players[0])  # Fix: Check if winner is the human player (index 0)
                 self.update_ui()
     
     def next_player(self):
