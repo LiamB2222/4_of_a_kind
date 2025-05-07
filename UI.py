@@ -282,17 +282,11 @@ class PokerGameUI:
     def handle_call(self):
         if not self.game_active:
             return
-    
+
         current_player = self.game.players[self.game.current_player_index]
         highest_bet = max(p.current_bet for p in self.game.players)
         amount_to_call = highest_bet - current_player.current_bet
-        amount_to_call = int(amount_to_call)
 
-        # Check if player has already called in this round
-        if current_player.current_bet > 0:
-            messagebox.showinfo("Action Not Allowed", "You can only call once per betting round.")
-            return
-    
         try:
             if amount_to_call == 0:
                 self.update_game_log(f"{current_player.name} checks")
@@ -302,33 +296,18 @@ class PokerGameUI:
                 self.game.current_pot += bet_amount
                 self.update_game_log(f"{current_player.name} calls ${amount_to_call}")
                 print(f"{current_player.name} calls ${amount_to_call}")
+                
+            self.update_ui()
+            self.next_player()
+
+            # AI turn is trigger
+            next_player = self.game.players[self.game.current_player_index]
+            if isinstance(next_player, AI_Player) and not next_player.folded:
+                self.root.after(500, self.handle_ai_turn)
+
         except ValueError as e:
             messagebox.showerror("Error", str(e))
             return
-    
-        self.update_ui()
-        self.next_player()
-
-        # Trigger AI turn after human call
-        next_player = self.game.players[self.game.current_player_index]
-        if isinstance(next_player, AI_Player) and not next_player.folded:
-            self.root.after(1000, self.handle_ai_turn)
-        
-        if amount_to_call > 0:
-            try:
-                print(f"{current_player.name} calls ${amount_to_call}")
-                bet_amount = current_player.bet(amount_to_call)
-                self.game.current_pot += bet_amount
-            except ValueError as e:
-                messagebox.showerror("Error", str(e))
-                return
-        else:
-            print(f"{current_player.name} checks")
-        
-        # self.next_player()
-        
-        #if current_player.name == "Human Player":
-        #    self.root.after(500, self.handle_ai_turn)
     
     def handle_raise(self):
         if not self.game_active:
@@ -505,18 +484,18 @@ class PokerGameUI:
         
         if action == 'fold':
             print(f"AI {current_player.name} folds")
-            self.update_game_log(f"{current_player.name} folds") # added to log the action
+            self.update_game_log(f"{current_player.name} folds") 
             current_player.fold()
             self.update_ui()
             
             active_players = [p for p in self.game.players if not p.folded]
             if len(active_players) == 1:
                 winner = active_players[0]
-                self.game_active = False  # Stop the game BEFORE revealing cards
-                self.reveal_ai_cards(skip_winner_check=True)  # Add parameter to skip winner check
+                self.game_active = False  
+                self.reveal_ai_cards(skip_winner_check=True)  
                 messagebox.showinfo("Winner", f"{winner.name} wins the pot of ${self.game.current_pot}!")
                 winner.chips += self.game.current_pot
-                self.update_stats(winner.name == "Human Player")
+                self.update_stats(True)  # Human player wins when AI folds
                 self.update_ui()
                 return
         elif action == 'call':
