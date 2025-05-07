@@ -75,7 +75,6 @@ Make sure the `CARD` folder containing card images is in the root directory:
   - Check/Call
   - Raise
   - Fold
-- Slider control for adjusting raise amounts
 
 ## Test Configuration
 - Default player name: "You"
@@ -94,3 +93,39 @@ If card images don't appear:
 - Monte Carlo simulation is used for AI decision making
 - The `treys` library handles hand evaluation
 - GUI built with tkinter for cross-platform compatibility
+
+## Texas Hold'em Poker Rules
+### 1. The Objective
+- Make the best 5-card poker hand using your two hole cards and five community cards on the table.
+### 2. The Setup
+- Each player gets 2 private cards (hole cards).
+- Then 5 community cards are dealt face-up in the center:
+    - 3 cards (the flop)
+    - 1 card (the turn)
+    - 1 card (the river)
+### 3. The Rounds of Betting
+- There are four betting rounds:
+    - Pre-Flop: after players get their hole cards.
+    - Flop: after the first 3 community cards are revealed.
+    - Turn: after the 4th community card is revealed.
+    - River: after the 5th and final community card is revealed.
+### 4. Betting Options
+- Fold: Quit the current hand and give up your chance to win the pot.
+- Check/Call (same button): Do nothing if no one has bet or Match another player's bet.
+- Bet: Put chips into the pot.
+- Raise: Increase the bet amount.
+### 5. The Best Hand Wins
+- After the final betting round, if more than one player remains, a showdown happens:
+    - Players reveal their cards.
+    - The best 5-card hand wins the pot.
+### 6. Hand Rankings (High to Low)
+1. Royal Flush
+2. Straight Flush
+3. Four of a Kind
+4. Full House
+5. Flush
+6. Straight
+7. Three of a Kind
+8. Two Pair
+9. One Pair
+10. High Card
