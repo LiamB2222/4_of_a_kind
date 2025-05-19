@@ -7,13 +7,12 @@
 - Windows 10 or higher
 - Linux (Ubuntu 20.04 or higher)
 
-### Language/Runtime
+### Requirements
 - Python 3.8 or higher
+- tkinter (usually included with Python, but may need to be installed separately on Linux)
+- treys==0.1.8
+- Pillow==10.2.0
 
-### Required Libraries
-- treys==0.1.8 (Poker hand evaluation)
-- Pillow==10.2.0 (Image processing)
-- tkinter>=8.6 (GUI framework, included with Python)
 
 ## Installation Instructions
 
@@ -43,7 +42,7 @@ pip install -r requirements.txt
 
 1. **Start the game**
 ```bash
-python main.py
+python main.py or python3 main.py (depending on you machine)
 ```
 
 2. **Directory Structure**
@@ -59,6 +58,37 @@ Make sure the `CARD` folder containing card images is in the root directory:
 ├── Deck.py
 └── CARD/
     └── [card images]
+```
+
+## Troubleshooting
+
+### 1. **Card images not showing up**
+
+If the card images are missing or not displaying correctly:
+
+- Ensure that the `CARD/` folder with the card images is **located in the root directory** of the project.
+- If the `CARD/` folder is missing or misplaced, the game will use placeholder images instead of actual cards.
+  
+### 2. **`tkinter` not found (GUI not working)**
+
+If you see an error related to `tkinter`, it might be missing on your system (mostly for Linux or certain Python installations):
+
+- **macOS/Windows**: `tkinter` is usually bundled with Python. Make sure you’re using the Python version from [python.org](https://www.python.org/downloads/).
+  
+- **Linux (Ubuntu/Debian)**:
+  You may need to install the `tkinter` package manually:
+  ```bash
+  sudo apt-get install python3-tk
+
+### 3. Libraries not intalled
+If you are stil having issues even after using the requirements.txt install each library manually on your terminal.
+- **Treys**
+```bash
+pip install treys
+```
+- **Pillow**
+```bash
+pip install Pillow
 ```
 
 ## How to Play
