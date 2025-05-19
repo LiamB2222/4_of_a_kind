@@ -16,8 +16,9 @@
 
 ## Installation Instructions
 
-1. **Clone the repository**
+1. **Clone the repository or download as zip file**
 ```bash
+# To clone the repository these are the command lines
 git clone https://github.com/LiamB2222/4_of_a_kind.git
 cd 4_of_a_kind
 ```
